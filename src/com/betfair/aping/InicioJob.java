@@ -78,7 +78,7 @@ public class InicioJob {
 								while (!podeEntra) {
 									try {
 										int hora = LocalDateTime.now().getHour();
-										if (hora <= 20 && hora >= 04) {
+										if (hora <= 18 && hora >= 04) {
 											podeEntra = main.calcularTempoEntrada(retornoProximaCorridaList, pais);
 											if (podeEntra) {
 												InicioJob inicioJob = new InicioJob();
@@ -135,6 +135,7 @@ public class InicioJob {
 		System.out.println("Verificando Status corrida");
 		listaRunnerMap = new HashMap<Long, Runner>();
 		listaRunnerMapPlace = new HashMap<Long, Runner>();
+		String date = sp.format(proximaCorridaList.get(0).getMarketStartTime());
 		while (!status) {
 			try {
 				marketBookReturn = jsonOperations.listMarketBook(marketIds, priceProjection, orderProjection, matchProjection, currencyCode, applicationKey, sessionToken);
@@ -142,7 +143,6 @@ public class InicioJob {
 					if (marketBookReturn.get(0).getStatus().equals(MarketStatus.OPEN.name())) {
 						boolean posicao = Boolean.FALSE;
 						for (int i = 0; i < marketBookReturn.size(); ++i) {
-							String date = sp.format(proximaCorridaList.get(0).getMarketStartTime());
 							System.out.print("[2] A corrida esta ABERTA " + proximaCorridaList.get(0).getEvent().getVenue() + " " +  proximaCorridaList.get(0).getMarketName() + " Hora " + 
 																											date + " \n" );
 							Runner retorno = null;
@@ -191,7 +191,8 @@ public class InicioJob {
 
 					} else if (marketBookReturn.get(0).getStatus().equals(MarketStatus.SUSPENDED.name()) && !listaRunnerMap.isEmpty()) {
 						boolean posicao = Boolean.FALSE;
-						System.out.print("[3] A corrida esta SUSPENSA " + proximaCorridaList.get(0).getMarketName() + " \n");
+						System.out.print("[3] A corrida esta SUSPENSA " + proximaCorridaList.get(0).getEvent().getVenue() + " " +  proximaCorridaList.get(0).getMarketName() + " Hora " + 
+																										date + " \n" );
 						for (int i = 0; i < marketBookReturn.size(); ++i) {
 							for (RunnerCatalog r : proximaCorridaList.get(i).getRunners()) {
 								if (proximaCorridaList.get(i).getDescription().getMarketType().equals("PLACE") || proximaCorridaList.get(i).getMarketName().equals("Posição")) {
@@ -227,7 +228,8 @@ public class InicioJob {
 
 					} else if (marketBookReturn.get(0).getStatus().equals(MarketStatus.CLOSED.name()) && !listaRunnerMap.isEmpty()) {
 						boolean posicao = false;
-						System.out.print("[4] A corrida esta FECHADA coletando informaçoes\n");
+						System.out.print("[4] A corrida esta FECHADA coletando informaçoes " + proximaCorridaList.get(0).getEvent().getVenue() + " " +  proximaCorridaList.get(0).getMarketName() + " Hora " + 
+																										date + " \n" );
 						for (int i = 0; i < marketBookReturn.size(); ++i) {
 							for (RunnerCatalog r : proximaCorridaList.get(i).getRunners()) {
 								System.out.println("Nome corrida " + proximaCorridaList.get(i).getMarketName());
@@ -235,7 +237,7 @@ public class InicioJob {
 									posicao = Boolean.TRUE;
 								}
 								for (Runner runner : marketBookReturn.get(i).getRunners()) {
-									if (r.getSelectionId().equals(runner.getSelectionId()) && runner.getStatus().equals(RunnerStatu.ACTIVE.name())) {
+									if (r.getSelectionId().equals(runner.getSelectionId())) {
 										if (!posicao) {
 											if (runner.getStatus().equals(RunnerStatu.WINNER.name())) {
 												Runner retornoMap = listaRunnerMap.get(r.getSelectionId());
