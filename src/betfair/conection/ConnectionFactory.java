@@ -23,8 +23,8 @@ public class ConnectionFactory {
 		// String url =
 		// "jdbc:postgresql://tips.cmgh3qfxzq5c.sa-east-1.rds.amazonaws.com:5432/tips";
 		// // Nome da
-		String url = "jdbc:postgresql://tips.chgdctshl9nz.sa-east-1.rds.amazonaws.com:5432/tips"; //homol
-//		String url = "jdbc:postgresql://tips.cqm9b7amos8q.sa-east-1.rds.amazonaws.com:5432/tips"; // prod
+//		String url = "jdbc:postgresql://tips.chgdctshl9nz.sa-east-1.rds.amazonaws.com:5432/tips"; //homol
+		String url = "jdbc:postgresql://tips.cqm9b7amos8q.sa-east-1.rds.amazonaws.com:5432/tips"; // prod
 		String user = "tips"; // nome do usuário do MySQL
 		String password = "alisson123"; // senha do MySQL
 		conexao = DriverManager.getConnection(url, user, password);
