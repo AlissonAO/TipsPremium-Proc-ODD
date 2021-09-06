@@ -19,7 +19,7 @@ public class Runner {
 	private Double oldLay = 0.0;
 	private Double oldBack = 0.0;
 	private Integer trap;
-	private Boolean win = Boolean.FALSE;
+	private Boolean win = Boolean.FALSE ;
 	private Boolean place = Boolean.FALSE;
 	private Double probabilidade = 0.0;
 	private Double totalApostado = 0.0;

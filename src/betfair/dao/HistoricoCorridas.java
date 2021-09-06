@@ -15,9 +15,11 @@ import java.util.Map;
 import org.bson.Document;
 
 import com.betfair.aping.InicioJob;
+import com.betfair.aping.entities.MarketBook;
 import com.betfair.aping.entities.MarketCatalogue;
 import com.betfair.aping.entities.ResultadoStatusCorridaVO;
 import com.betfair.aping.entities.Runner;
+import com.betfair.aping.entities.RunnerCatalog;
 import com.betfair.aping.util.Data;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
@@ -42,11 +44,10 @@ public class HistoricoCorridas {
 		PreparedStatement prepsInsertProduct = null;
 		if (resultVO.getStatus().equals(""))
 			return Boolean.FALSE;
-		String update = "UPDATE public.\"Hist_galgo_betfair\" SET datainicio = ?" + "," + "datafim = ?" + "," + "odd_lay = ?" + "," + "odd_back = ?" + "," 
-																						+ "probabilidade = ?" + "," + "din_investido = ?" + "," + "win = ?" + ","
-																						+ "odd_back_place = ?" + "," + "odd_lay_place = ?" + "," + "probabilidade_place = ?" + ","
-																						+ "din_investido_place = ?" + "," + "win_place = ?" + "WHERE id_hist_pista = ?"
-																						+ " AND nomeGalgo = ?";
+		String update = "UPDATE public.\"Hist_galgo_betfair\" SET datainicio = ?" + "," + "datafim = ?" + "," + "odd_lay = ?" + "," + "odd_back = ?" + "," + "probabilidade = ?" + ","
+																						+ "din_investido = ?" + "," + "win = ?" + "," + "odd_back_place = ?" + ","
+																						+ "odd_lay_place = ?" + "," + "probabilidade_place = ?" + "," + "din_investido_place = ?"
+																						+ "," + "win_place = ?" + "WHERE id_hist_pista = ?" + " AND iddogbetfair = ?";
 		try {
 			Date dataNow = Data.addHoursToJavaUtilDate(new Date(), Data.hora);
 			con = ConnectionFactory.getConection();
@@ -54,25 +55,25 @@ public class HistoricoCorridas {
 
 				for (Runner r : listaRunnerMap.values()) {
 					for (Runner place : listaRunnerMapPlace.values()) {
-						if (r.getSelectionId().equals(place.getSelectionId())) {
-							prepsInsertProduct = con.prepareStatement(update);
-							prepsInsertProduct.setTimestamp(1, new Timestamp(Data.addHoursToJavaUtilDate(listPista.get(0).getMarketStartTime(), Data.hora).getTime()));
-							prepsInsertProduct.setTimestamp(2, new Timestamp(dataNow.getTime()));
-							prepsInsertProduct.setDouble(3, r.getOldLay() != null ? r.getOldLay() : null);
-							prepsInsertProduct.setDouble(4, r.getOldBack() != null ? r.getOldBack() : null);
-							prepsInsertProduct.setDouble(5, r.getProbabilidade() != null ? r.getProbabilidade() : null);
-							prepsInsertProduct.setDouble(6, r.getTotalMatched() != null ? r.getTotalMatched() : null);
-							prepsInsertProduct.setBoolean(7, r.getWin() != null ? r.getWin() : null);
-							prepsInsertProduct.setDouble(8, place.getOldBack() != null ? place.getOldBack() : null);
-							prepsInsertProduct.setDouble(9, place.getOldLay() != null ? place.getOldBack() : null);
-							prepsInsertProduct.setDouble(10, place.getProbabilidade() != null ? place.getProbabilidade() : null);
-							prepsInsertProduct.setDouble(11, place.getTotalMatched() != null ? place.getTotalMatched() : null);
-							prepsInsertProduct.setBoolean(12, place.getWin() != null ? place.getWin() : null);
-							prepsInsertProduct.setInt(13, Integer.valueOf(resultVO.getIdPk()));
-							prepsInsertProduct.setString(14, r.getName());
-							prepsInsertProduct.executeUpdate();
+							if (r.getSelectionId().equals(place.getSelectionId())) {
+								prepsInsertProduct = con.prepareStatement(update);
+								prepsInsertProduct.setTimestamp(1, new Timestamp(Data.addHoursToJavaUtilDate(listPista.get(0).getMarketStartTime(), Data.hora).getTime()));
+								prepsInsertProduct.setTimestamp(2, new Timestamp(dataNow.getTime()));
+								prepsInsertProduct.setDouble(3, r.getOldLay() != null ? r.getOldLay() : null);
+								prepsInsertProduct.setDouble(4, r.getOldBack() != null ? r.getOldBack() : null);
+								prepsInsertProduct.setDouble(5, r.getProbabilidade() != null ? r.getProbabilidade() : null);
+								prepsInsertProduct.setDouble(6, r.getTotalMatched() != null ? r.getTotalMatched() : null);
+								prepsInsertProduct.setBoolean(7, r.getWin() );
+								prepsInsertProduct.setDouble(8, place.getOldBack() != null ? place.getOldBack() : null);
+								prepsInsertProduct.setDouble(9, place.getOldLay() != null ? place.getOldBack() : null);
+								prepsInsertProduct.setDouble(10, place.getProbabilidade() != null ? place.getProbabilidade() : null);
+								prepsInsertProduct.setDouble(11, place.getTotalMatched() != null ? place.getTotalMatched() : null);
+								prepsInsertProduct.setBoolean(12, place.getWin() );
+								prepsInsertProduct.setInt(13, Integer.valueOf(resultVO.getIdPk()));
+								prepsInsertProduct.setString(14, r.getSelectionId().toString());
+								prepsInsertProduct.executeUpdate();
 
-						}
+							}
 					}
 				}
 				// Sem mercado place
@@ -85,14 +86,15 @@ public class HistoricoCorridas {
 					prepsInsertProduct.setDouble(4, r.getOldBack() != null ? r.getOldBack() : null);
 					prepsInsertProduct.setDouble(5, r.getProbabilidade() != null ? r.getProbabilidade() : null);
 					prepsInsertProduct.setDouble(6, r.getTotalMatched() != null ? r.getTotalMatched() : null);
-					prepsInsertProduct.setBoolean(7, r.getWin() != null ? r.getWin() : null);
+					prepsInsertProduct.setBoolean(7, r.getWin() );
 					prepsInsertProduct.setDouble(8, 0);
 					prepsInsertProduct.setDouble(9, 0);
 					prepsInsertProduct.setDouble(10, 0);
 					prepsInsertProduct.setDouble(11, 0);
 					prepsInsertProduct.setBoolean(12, Boolean.FALSE);
 					prepsInsertProduct.setInt(13, Integer.valueOf(resultVO.getIdPk()));
-					prepsInsertProduct.setString(14, r.getName());
+					prepsInsertProduct.setString(14, r.getSelectionId().toString());
+						
 					prepsInsertProduct.executeUpdate();
 
 				}
@@ -108,8 +110,10 @@ public class HistoricoCorridas {
 			InicioJob.gravarLog(e.getMessage() + e.getCause());
 		} finally {
 			try {
-				if(!prepsInsertProduct.isClosed()) {
-					prepsInsertProduct.close();
+				if (prepsInsertProduct != null) {
+					if (!prepsInsertProduct.isClosed()) {
+						prepsInsertProduct.close();
+					}
 				}
 				if (!con.isClosed()) {
 					con.close();
@@ -163,8 +167,8 @@ public class HistoricoCorridas {
 						}
 					}
 					setQuery.append("$set", updateFields);
-//	     			Document retorno = collection.findOneAndUpdate(query, setQuery);
-//	     			if(retorno != null) System.out.println("[6] Retorno Cadastro" + retorno.toJson());
+	     			Document retorno = collection.findOneAndUpdate(query, setQuery);
+	     			if(retorno != null) System.out.println("[6] Retorno Cadastro" + retorno.toJson());
 				}
 
 			}
@@ -224,14 +228,15 @@ public class HistoricoCorridas {
 		return retorno;
 	}
 
-	public ResultadoStatusCorridaVO pesquisarCorrida(List<MarketCatalogue> listPista, Double totalCorrida) {
+	@SuppressWarnings("resource")
+	public ResultadoStatusCorridaVO pesquisarCorrida(List<MarketCatalogue> listPista, Double totalCorrida, int qtdGalgo) {
 		ResultSet resultSet = null;
 		PreparedStatement prepsInsertProduct = null;
 		ResultadoStatusCorridaVO retorno = new ResultadoStatusCorridaVO();
 		Timestamp timestamp = new Timestamp(Data.addHoursToJavaUtilDate(listPista.get(0).getMarketStartTime(), Data.hora).getTime());
 		String pesquisarCorrida = "SELECT id, statusresultado  from public.\"Hist_pista_betfair\" where pista = ? AND data_corrida = ?";
 
-		String update = "UPDATE public.\"Hist_pista_betfair\" SET total_dinheiro = ?" + "," + "statusresultado = ?" + "WHERE id = ?";
+		String update = "UPDATE public.\"Hist_pista_betfair\" SET total_dinheiro = ?" + "," + "statusresultado = ?" + "," + "qtdgalgo = ?" + "WHERE id = ?";
 
 		Connection con = null;
 		try {
@@ -252,7 +257,8 @@ public class HistoricoCorridas {
 			} else {
 				prepsInsertProduct.setString(2, retorno.getStatus());
 			}
-			prepsInsertProduct.setInt(3, Integer.valueOf(retorno.getIdPk()));
+			prepsInsertProduct.setInt(3, qtdGalgo);
+			prepsInsertProduct.setInt(4, Integer.valueOf(retorno.getIdPk()));
 			prepsInsertProduct.executeUpdate();
 
 		} catch (Exception e) {
@@ -261,8 +267,10 @@ public class HistoricoCorridas {
 			InicioJob.gravarLog(e.getMessage() + e.getCause());
 		} finally {
 			try {
-				if(!prepsInsertProduct.isClosed()) {
-					prepsInsertProduct.close();
+				if (prepsInsertProduct != null) {
+					if (!prepsInsertProduct.isClosed()) {
+						prepsInsertProduct.close();
+					}
 				}
 				if (!con.isClosed()) {
 					con.close();
@@ -274,6 +282,45 @@ public class HistoricoCorridas {
 		return retorno;
 	}
 
+	
+	public ResultadoStatusCorridaVO pesquisarCorrida(List<MarketCatalogue> listPista) {
+		ResultSet resultSet = null;
+		PreparedStatement prepsInsertProduct = null;
+		ResultadoStatusCorridaVO retorno = new ResultadoStatusCorridaVO();
+		Timestamp timestamp = new Timestamp(Data.addHoursToJavaUtilDate(listPista.get(0).getMarketStartTime(), Data.hora).getTime());
+		String pesquisarCorrida = "SELECT id, statusresultado  from public.\"Hist_pista_betfair\" where pista = ? AND data_corrida = ?";
+		Connection con = null;
+		try {
+			con = ConnectionFactory.getConection();
+			prepsInsertProduct = con.prepareStatement(pesquisarCorrida);
+			prepsInsertProduct.setString(1, listPista.get(0).getEvent().getVenue());
+			prepsInsertProduct.setTimestamp(2, timestamp);
+			resultSet = prepsInsertProduct.executeQuery();
+			while (resultSet.next()) {
+				retorno.setIdPk(resultSet.getString(1));
+				retorno.setStatus(resultSet.getString(2));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.println(e);
+			InicioJob.gravarLog(e.getMessage() + e.getCause());
+		} finally {
+			try {
+				if (prepsInsertProduct != null) {
+					if (!prepsInsertProduct.isClosed()) {
+						prepsInsertProduct.close();
+					}
+				}
+				if (con != null && !con.isClosed()) {
+					con.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return retorno;
+	}
+	
 	public String getPais() {
 		return pais;
 	}
@@ -282,4 +329,38 @@ public class HistoricoCorridas {
 		this.pais = pais;
 	}
 
+	public void cadastrarGalgoReserva(RunnerCatalog r, List<MarketCatalogue> proximaCorridaList, ResultadoStatusCorridaVO retornoIdPista) {
+		ResultSet resultSet = null;
+		PreparedStatement prepsInsertProduct = null;
+		String update = "insert INTO public.\"Hist_galgo_betfair\" (nomegalgo,trap, id_hist_pista, iddogbetfair, reserva) VALUES"+
+								"(?,?,?,?, ?)";
+		Connection con = null;
+		try {
+			con = ConnectionFactory.getConection();
+			prepsInsertProduct = con.prepareStatement(update);
+			prepsInsertProduct.setString(1, r.getRunnerName().substring(3).replace("(res)", ""));
+			prepsInsertProduct.setInt(2, Integer.valueOf(r.getRunnerName().substring(0,1)));
+			prepsInsertProduct.setInt(3, Integer.valueOf(retornoIdPista.getIdPk()));
+			prepsInsertProduct.setString(4, r.getSelectionId().toString());
+			prepsInsertProduct.setBoolean(5, true);
+			prepsInsertProduct.execute();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.err.println(e);
+			InicioJob.gravarLog(e.getMessage() + e.getCause());
+		} finally {
+			try {
+				if (prepsInsertProduct != null && !prepsInsertProduct.isClosed()) {
+						prepsInsertProduct.close();
+				}
+				if (con != null && !con.isClosed()) {
+					con.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		
+	}
 }

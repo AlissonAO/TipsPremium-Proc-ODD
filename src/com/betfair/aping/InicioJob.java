@@ -78,7 +78,7 @@ public class InicioJob {
 								while (!podeEntra) {
 									try {
 										int hora = LocalDateTime.now().getHour();
-										if (hora <= 18 && hora >= 04) {
+										if (hora <= 19 && hora >= 04) {
 											podeEntra = main.calcularTempoEntrada(retornoProximaCorridaList, pais);
 											if (podeEntra) {
 												InicioJob inicioJob = new InicioJob();
@@ -136,10 +136,17 @@ public class InicioJob {
 		listaRunnerMap = new HashMap<Long, Runner>();
 		listaRunnerMapPlace = new HashMap<Long, Runner>();
 		String date = sp.format(proximaCorridaList.get(0).getMarketStartTime());
+		boolean galgoReserve = false;
+		int qtdGalgos = 0;
+		
 		while (!status) {
 			try {
 				marketBookReturn = jsonOperations.listMarketBook(marketIds, priceProjection, orderProjection, matchProjection, currencyCode, applicationKey, sessionToken);
 				if (marketBookReturn != null && !marketBookReturn.isEmpty()) {
+					if(!galgoReserve) {
+						galgoReserve = verificarGalgoReserva(proximaCorridaList);
+					}
+					if(marketBookReturn.get(0).getNumberOfActiveRunners() != 0) qtdGalgos = marketBookReturn.get(0).getNumberOfActiveRunners();
 					if (marketBookReturn.get(0).getStatus().equals(MarketStatus.OPEN.name())) {
 						boolean posicao = Boolean.FALSE;
 						for (int i = 0; i < marketBookReturn.size(); ++i) {
@@ -262,7 +269,7 @@ public class InicioJob {
 							}
 						}
 						HistoricoCorridas hist = new HistoricoCorridas(pais);
-						ResultadoStatusCorridaVO resultVO =  hist.pesquisarCorrida(proximaCorridaList, totalCorrida);
+						ResultadoStatusCorridaVO resultVO =  hist.pesquisarCorrida(proximaCorridaList, totalCorrida, qtdGalgos);
 						hist.cadastrarCorridas(listaRunnerMap, listaRunnerMapPlace, proximaCorridaList, resultVO);
 						status = Boolean.TRUE;
 					}
@@ -278,6 +285,19 @@ public class InicioJob {
 		}
 	}
 
+
+	private boolean verificarGalgoReserva(List<MarketCatalogue> proximaCorridaList) {
+		
+		HistoricoCorridas his = new HistoricoCorridas("GB");
+		ResultadoStatusCorridaVO retornoIdPista = his.pesquisarCorrida(proximaCorridaList);
+		for (RunnerCatalog r : proximaCorridaList.get(0).getRunners()) {
+			if(r.getRunnerName().toLowerCase().contains("(res)")){
+				his.cadastrarGalgoReserva(r, proximaCorridaList, retornoIdPista);
+			}
+			
+		}
+		return Boolean.TRUE;
+	}
 
 	@SuppressWarnings("deprecation")
 	private Boolean calcularTempoEntrada(List<MarketCatalogue> retornoProximaCorridaList, String pais) throws InterruptedException {
